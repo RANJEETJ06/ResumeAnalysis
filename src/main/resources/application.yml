@@ -1,0 +1,22 @@
+server:
+  port: 8089
+
+spring:
+  datasource:
+    url: jdbc:h2:mem:ai_db
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: update
+    database-platform: org.hibernate.dialect.H2Dialect
+
+  h2:
+    console:
+      enabled: true
+  application:
+    name: ResumeAnalysis
+gemini:
+  api:
+    key: ${geminiAi}
