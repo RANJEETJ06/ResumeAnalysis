@@ -1,5 +1,6 @@
 package com.analyzer.resumeanalysis.service.AI;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +11,8 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 
 @Component
 @RequiredArgsConstructor
@@ -23,8 +26,6 @@ public class Analyze {
     private String apiKey;
 
     public JsonNode extractResumeData(String resumeText) {
-        String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + apiKey;
-
         String prompt = String.format("""
             {
               "contents": [
@@ -46,26 +47,92 @@ public class Analyze {
         HttpEntity<String> entity = new HttpEntity<>(prompt, headers);
 
         try {
-            ResponseEntity<JsonNode> response = restTemplate.exchange(url, HttpMethod.POST, entity, JsonNode.class);
-
-            if (response.getBody() == null) {
-                throw new RuntimeException("API returned empty response.");
-            }
-
-            String jsonString = response.getBody()
-                    .path("candidates").path(0)
-                    .path("content").path("parts").path(0)
-                    .path("text").asText()
-                    .replaceAll("```json", "")
-                    .replaceAll("```", "")
-                    .trim();
-
-            return objectMapper.readTree(jsonString);
+            return getJsonNode(entity);
 
         } catch (RestClientException e) {
             throw new RuntimeException("Failed to call Gemini API: " + e.getMessage(), e);
         } catch (Exception e) {
             throw new RuntimeException("Failed to parse resume JSON: " + e.getMessage(), e);
         }
+    }
+
+    public JsonNode suggestImprovements(JsonNode analysedData,String jobProfile){
+        String prompt = String.format("""
+        You are an expert AI resume reviewer.
+
+        Analyze the following resume (in JSON format) and provide targeted improvement suggestions to better align it with the job role: "%s".
+
+        Break the suggestions into the following sections:
+        - summary: string
+        - skills: string
+        - experience: string
+        - education: string
+        - others: array of strings (e.g., formatting tips, structure changes, missing sections)
+
+        Also, estimate a realistic candidate selection chance (from 0 to 100 percent) based on the current resume.
+
+        Return only valid JSON with this structure:
+        {
+          "summary": "...",
+          "skills": "...",
+          "experience": "...",
+          "education": "...",
+          "others": ["...", "..."],
+          "selection_chance_percent": 75
+        }
+
+        Resume:
+        %s
+        """, jobProfile, analysedData.toPrettyString());
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+
+        String requestBody = """
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "%s"
+                }
+              ]
+            }
+          ]
+        }
+        """.formatted(prompt.replace("\"", "\\\"").replace("\n", "\\n"));
+
+        HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
+
+        try {
+            return getJsonNode(entity);
+
+        } catch (RestClientException e) {
+            throw new RuntimeException("Failed to call Gemini API: " + e.getMessage(), e);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to parse improvement suggestions JSON: " + e.getMessage(), e);
+        }
+    }
+
+    private JsonNode getJsonNode(HttpEntity<String> entity) throws JsonProcessingException {
+        String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + apiKey;
+        ResponseEntity<JsonNode> response = restTemplate.exchange(url, HttpMethod.POST, entity, JsonNode.class);
+        String jsonString = Objects.requireNonNull(response.getBody())
+                .path("candidates").path(0)
+                .path("content").path("parts").path(0)
+                .path("text").asText();
+
+
+        if (jsonString == null || jsonString.trim().isEmpty()) {
+            throw new RuntimeException("API returned empty or invalid content.");
+        }
+
+        jsonString = jsonString.replaceAll("```json", "")
+                .replaceAll("```", "")
+                .replaceAll("`", "") // Remove any stray backticks
+                .trim();
+
+        return objectMapper.readTree(jsonString);
     }
 }

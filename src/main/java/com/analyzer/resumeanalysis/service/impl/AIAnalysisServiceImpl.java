@@ -2,6 +2,7 @@ package com.analyzer.resumeanalysis.service.impl;
 
 import com.analyzer.resumeanalysis.Exception.ResourceNotFoundException;
 import com.analyzer.resumeanalysis.dto.ResumeAnalysisDto;
+import com.analyzer.resumeanalysis.dto.ResumeAnalysisWithImprovementsDto;
 import com.analyzer.resumeanalysis.entity.ResumeAnalysis;
 import com.analyzer.resumeanalysis.repository.ResumeAnalysisRepository;
 import com.analyzer.resumeanalysis.service.AI.Analyze;
@@ -26,7 +27,7 @@ public class AIAnalysisServiceImpl implements AIAnalysisService {
     private final Analyze analyze;
 
     @Override
-    public ResumeAnalysisDto analyze(String rawText) {
+    public ResumeAnalysisWithImprovementsDto analyze(String rawText) {
         ResumeAnalysis analysis = new ResumeAnalysis();
 
         JsonNode analysedData=analyze.extractResumeData(rawText);
@@ -57,8 +58,9 @@ public class AIAnalysisServiceImpl implements AIAnalysisService {
         analysis.setSummary(analysedData.get("summary").asText());
 
         ResumeAnalysis savedAnalysis = resumeAnalysisRepository.save(analysis);
-
-        return modelMapper.map(savedAnalysis,ResumeAnalysisDto.class);
+        JsonNode improvements = analyze.suggestImprovements(analysedData, "SpringBoot Developer");
+        ResumeAnalysisDto savedAnalysisDto=modelMapper.map(savedAnalysis,ResumeAnalysisDto.class);
+        return new ResumeAnalysisWithImprovementsDto(savedAnalysisDto,improvements);
     }
 
     @Override
