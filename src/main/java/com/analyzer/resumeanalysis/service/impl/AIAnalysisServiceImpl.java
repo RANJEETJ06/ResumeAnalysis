@@ -8,18 +8,16 @@ import com.analyzer.resumeanalysis.repository.ResumeAnalysisRepository;
 import com.analyzer.resumeanalysis.service.AI.Analyze;
 import com.analyzer.resumeanalysis.service.AIAnalysisService;
 import com.fasterxml.jackson.databind.JsonNode;
-import lombok.RequiredArgsConstructor;
+import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
+@AllArgsConstructor
 public class AIAnalysisServiceImpl implements AIAnalysisService {
 
     private final ResumeAnalysisRepository resumeAnalysisRepository;
