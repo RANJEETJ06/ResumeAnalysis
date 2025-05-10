@@ -31,7 +31,7 @@ public class Analyze {
                 {
                   "parts": [
                     {
-                      "text": "Extract the following fields from the resume below and format the output as a JSON object that would be returned by a function named `extract_resume` with the following schema:\\n\\n{\\n  \\"name\\": string,\\n  \\"experience\\": string,\\n  \\"education\\": string[],\\n  \\"skills\\": string[],\\n  \\"summary\\": string\\n}\\n\\nReturn only the raw JSON, do not use markdown or any other formatting.\\n\\nResume:\\n%s"
+                      "text": "Extract the following fields from the resume below and format the output as a JSON object that would be returned by a function named `extract_resume` with the following schema:\\n\\n{\\n  \\"name\\": string,\\n  \\"experience\\": string,\\n  \\"education\\": string[],\\n  \\"skills\\": string[],\\n  \\"summary\\": string,\\n  \\"contacts\\": [\\n    {\\n      \\"type\\": string,\\n      \\"value\\": string\\n    }\\n  ],\\n  \\"projects\\": [\\n    {\\n      \\"title\\": string,\\n      \\"tech_stack\\": string[],\\n      \\"description\\": string\\n    }\\n  ]\\n}\\n\\nReturn only the raw JSON, do not use markdown or any other formatting.\\n\\nResume:\\n%s"
                     }
                   ]
                 }
@@ -65,7 +65,7 @@ public class Analyze {
         - summary: string
         - skills: string
         - experience: string
-        - education: string
+        - project: string
         - others: array of strings (e.g., formatting tips, structure changes, missing sections)
 
         Also, estimate a realistic candidate selection chance (from 0 to 100 percent) based on the current resume.
@@ -75,7 +75,7 @@ public class Analyze {
           "summary": "...",
           "skills": "...",
           "experience": "...",
-          "education": "...",
+          "project": "...",
           "others": ["...", "..."],
           "selection_chance_percent": 75
         }

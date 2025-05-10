@@ -55,6 +55,36 @@ public class AIAnalysisServiceImpl implements AIAnalysisService {
         analysis.setSkills(skillList);
         analysis.setSummary(analysedData.get("summary").asText());
 
+        // Extracting contacts
+        List<String> contactsList = new ArrayList<>();
+        JsonNode contactsNode = analysedData.get("contacts");
+        System.out.println(contactsNode);
+        if (contactsNode != null) {
+            for (JsonNode contact : contactsNode) {
+                String type = contact.has("type") ? contact.get("type").asText() : "";
+                String value = contact.has("value") ? contact.get("value").asText() : "";
+                contactsList.add(type + ": " + value);
+            }
+        }
+        analysis.setContacts(contactsList);
+
+        // Extracting projects
+        List<String> projectsList = new ArrayList<>();
+        JsonNode projectsNode = analysedData.get("projects");
+        if (projectsNode != null && projectsNode.isArray()) {
+            for (JsonNode project : projectsNode) {
+                String title = project.has("title") ? project.get("title").asText() : "";
+                String description = project.has("description") ? project.get("description").asText() : "";
+                String techStack = project.has("tech_stack") && project.get("tech_stack").isArray()
+                        ? project.get("tech_stack").toString() : "";
+
+                String formatted = "Title: " + title + "\nTech Stack: " + techStack + "\nDescription: " + description;
+                projectsList.add(formatted);
+            }
+        }
+        analysis.setProjects(projectsList);
+
+
         ResumeAnalysis savedAnalysis = resumeAnalysisRepository.save(analysis);
         JsonNode improvements = analyze.suggestImprovements(analysedData, "SpringBoot Developer");
         ResumeAnalysisDto savedAnalysisDto=modelMapper.map(savedAnalysis,ResumeAnalysisDto.class);
