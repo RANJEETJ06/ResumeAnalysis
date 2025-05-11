@@ -25,7 +25,7 @@ public class AIAnalysisServiceImpl implements AIAnalysisService {
     private final Analyze analyze;
 
     @Override
-    public ResumeAnalysisWithImprovementsDto analyze(String rawText) {
+    public ResumeAnalysisWithImprovementsDto analyze(String rawText,String jobProfile) {
         ResumeAnalysis analysis = new ResumeAnalysis();
 
         JsonNode analysedData=analyze.extractResumeData(rawText);
@@ -58,7 +58,6 @@ public class AIAnalysisServiceImpl implements AIAnalysisService {
         // Extracting contacts
         List<String> contactsList = new ArrayList<>();
         JsonNode contactsNode = analysedData.get("contacts");
-        System.out.println(contactsNode);
         if (contactsNode != null) {
             for (JsonNode contact : contactsNode) {
                 String type = contact.has("type") ? contact.get("type").asText() : "";
@@ -86,7 +85,7 @@ public class AIAnalysisServiceImpl implements AIAnalysisService {
 
 
         ResumeAnalysis savedAnalysis = resumeAnalysisRepository.save(analysis);
-        JsonNode improvements = analyze.suggestImprovements(analysedData, "SpringBoot Developer");
+        JsonNode improvements = analyze.suggestImprovements(analysedData, jobProfile);
         ResumeAnalysisDto savedAnalysisDto=modelMapper.map(savedAnalysis,ResumeAnalysisDto.class);
         return new ResumeAnalysisWithImprovementsDto(savedAnalysisDto,improvements);
     }

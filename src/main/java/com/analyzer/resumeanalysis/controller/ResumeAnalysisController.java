@@ -19,9 +19,9 @@ public class ResumeAnalysisController {
     @Autowired
     private AIAnalysisService aiAnalysisService;
 
-    @PostMapping("/analyze")
-    public ResponseEntity<ResumeAnalysisWithImprovementsDto> analyzeText(@RequestBody RawTextRequest request) {
-        return ResponseEntity.ok(aiAnalysisService.analyze(request.getText()));
+    @PostMapping("/analyze/{jobName}")
+    public ResponseEntity<ResumeAnalysisWithImprovementsDto> analyzeText(@RequestBody RawTextRequest request,@PathVariable String jobName) {
+        return ResponseEntity.ok(aiAnalysisService.analyze(request.getText(),jobName));
     }
 
     @GetMapping("/analysis/{name}")

@@ -6,7 +6,7 @@ import com.analyzer.resumeanalysis.dto.ResumeAnalysisWithImprovementsDto;
 import java.util.List;
 
 public interface AIAnalysisService {
-    ResumeAnalysisWithImprovementsDto analyze(String rawText);
+    ResumeAnalysisWithImprovementsDto analyze(String rawText,String jobProfile);
 
     List<ResumeAnalysisDto> getAnalysisByName(String name);
 
